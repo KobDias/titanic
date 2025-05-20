@@ -6,12 +6,15 @@
         <h1 class="text-center mb-4">Olá, {{ current_user.nome }}!</h1>
         <h1 class="mb-4">Visualizações</h1>
         <div class="d-flex flex-wrap border border-3 w-100">
-            {% if views %}
-                {% for view in views %}
+            {% if documentos %}
+                {% for documento in documentos %}
                     <a href="#">
                         <div class="card m-2" style="width: 18rem; cursor: pointer;">
                             <div class="card-body">
-                                <h5 class="card-title">{{ view.view_name }}</h5>
+                                <h5 class="card-title">{{ documento.nome_doc.split('_202')[0] }}</h5>
+                                <a href="{{ url_for('pred.views', id=documento.doc_id) }}" class="btn btn-primary mt-2">
+                                    Ver detalhes
+                                </a>
                             </div>
                         </div>
                     </a>
@@ -21,7 +24,7 @@
                 <div class="card m-2" style="width: 18rem; cursor: pointer;">
                     <div class="card-body text-center">
                         <h5 class="card-title" style="font-size: 3rem;">+</h5>
-                        <p class="card-text">Clique aqui para criar novas visualizações</p>
+                        <a href="{{ url_for('pred.upload') }}">Clique aqui para criar novas visualizações</a>
                     </div>
                 </div>
             </a>

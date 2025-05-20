@@ -1,6 +1,5 @@
 from flask import Blueprint, flash, render_template, request, redirect, url_for
 from flask_login import current_user, login_required
-from models import *
 from flask_wtf import FlaskForm
 from wtforms import FileField, SubmitField
 from db import db
@@ -8,6 +7,8 @@ from werkzeug.utils import secure_filename
 from docling.document_converter import DocumentConverter
 import os
 from datetime import datetime
+from .processamento import predict, processo
+from models import Documento
 
 pred_bp = Blueprint('pred', __name__, template_folder='templates', url_prefix='/pred')
 
@@ -32,18 +33,43 @@ def upload():
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             new_filename = f'{filename.rsplit(".", 1)[0]}_{timestamp}.csv'
 
-            file_path = os.path.join('app/static/uploads', new_filename)
+            file_path = os.path.join('app/static/uploads/original', new_filename)
             file.save(file_path)
-
+            
             uploadDoc = Documento(
                 user_id=current_user.id,
-                caminho=file_path,
+                caminhoOriginal=file_path,
                 nome_doc=new_filename
             )
             db.session.add(uploadDoc)
             db.session.commit()
-            flash('Sucesso')
-            return 'uploaded' # if not ALLOWED_EXTENSIONS, return 'error'
+            print(uploadDoc.doc_id)
+
+            return redirect(url_for('pred.views', id=uploadDoc.doc_id)) 
+        # if not ALLOWED_EXTENSIONS, return 'error'
         return 'error'
     #GET
     return render_template('upload.html')
+
+@pred_bp.route('/view/<int:id>', methods=['GET', 'POST'])
+@login_required
+def views(id):
+    doc = db.session.query(Documento).filter_by(doc_id=id).first()
+    nome = doc.nome_doc.split('_202', 1)[0]
+    if not doc:
+        return 'Documento não encontrado', 404
+    if request.method == 'POST':
+        caminho = doc.caminhoOriginal
+        predicao = predict(caminho)
+
+        predito = processo(caminho, predicao, nome)
+
+        doc.caminhoPredito = predito
+        db.session.commit()
+        # add DATA DE PREDICAO se possivel pra ver a att
+        return redirect(url_for('pred.views', id=doc.doc_id)) #redireciona para a view do documento
+    #get
+    predito = doc.caminhoPredito
+
+    return render_template('view.html', doc=doc, nome=nome, predito=predito)
+    

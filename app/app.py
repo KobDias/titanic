@@ -1,5 +1,5 @@
 from flask import Flask, request, url_for, redirect, render_template
-from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 from db import db
 from models import *
 import os
@@ -31,7 +31,9 @@ def load_user(id):
 @app.route('/')
 @app.route('/home')
 def home():
-    return render_template('index.html')
+    documento = db.session.query(Documento).filter_by(user_id=current_user.id).all()
+    print(documento)
+    return render_template('index.html', documentos=documento)
 
 if __name__ == '__main__':
     with app.app_context():
