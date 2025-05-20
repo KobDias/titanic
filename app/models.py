@@ -23,6 +23,7 @@ class Documento(db.Model):
 class View(db.Model):
     view_id = db.Column(db.Integer, primary_key=True)
     doc_id = db.Column(db.Integer, db.ForeignKey('Documento.doc_id'), nullable=False)
+    caminho_view = db.Column(db.String(200), nullable=False)
     # html_content = db.Column(db.Text, nullable=False)
     # view_name = db.Column(db.String(100), nullable=False)
     criado_em = db.Column(db.DateTime, default=db.func.current_timestamp())

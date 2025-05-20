@@ -31,9 +31,10 @@ def load_user(id):
 @app.route('/')
 @app.route('/home')
 def home():
-    documento = db.session.query(Documento).filter_by(user_id=current_user.id).all()
-    print(documento)
-    return render_template('index.html', documentos=documento)
+    if current_user.is_authenticated:
+        documento = db.session.query(Documento).filter_by(user_id=current_user.id).all()
+        return render_template('index.html', documentos=documento)
+    return render_template('index.html')
 
 if __name__ == '__main__':
     with app.app_context():

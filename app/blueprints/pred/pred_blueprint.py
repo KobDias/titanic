@@ -9,12 +9,30 @@ import os
 from datetime import datetime
 from .processamento import predict, processo
 from models import Documento
+import pandas as pd
+import matplotlib.pyplot as plt
+import  base64
 
 pred_bp = Blueprint('pred', __name__, template_folder='templates', url_prefix='/pred')
 
 ALLOWED_EXTENSIONS = set(['csv'])
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def gerar_grafico(df, nome):
+
+    data = pd.read_csv(df)
+    # Exemplo de gráfico: histograma da coluna 'SalePrice'
+    plt.figure(figsize=(10, 6))
+    data['SalePrice'].hist(bins=30)
+    plt.title('Distribuição do SalePrice')
+    plt.xlabel('SalePrice')
+    plt.ylabel('Frequência')
+
+    # Salva o gráfico em um buffer
+    plt.savefig(f'app/static/uploads/graficos/{nome}.png', format='png')
+
+
 
 @pred_bp.route('/upload', methods=['GET', 'POST'])
 @login_required
@@ -69,7 +87,9 @@ def views(id):
         # add DATA DE PREDICAO se possivel pra ver a att
         return redirect(url_for('pred.views', id=doc.doc_id)) #redireciona para a view do documento
     #get
+    gerar_grafico(doc.caminhoOriginal, nome)
+    fig = url_for('static', filename=f'uploads/graficos/{nome}.png')
     predito = doc.caminhoPredito
 
-    return render_template('view.html', doc=doc, nome=nome, predito=predito)
+    return render_template('view.html', doc=doc, nome=nome, predito=predito, fig=fig)
     
